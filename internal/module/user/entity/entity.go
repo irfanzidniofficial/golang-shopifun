@@ -9,7 +9,8 @@ type RegisterRequest struct {
 }
 
 type RegisterResponse struct {
-	Id string `json:"id"`
+	Id   string `json:"id"`
+	Name string `json:"name"`
 }
 
 type LoginRequest struct {
@@ -22,7 +23,7 @@ type LoginResponse struct {
 }
 
 type ProfileRequest struct {
-	UserId string
+	UserId string `json:"user_id" validate:"required"`
 }
 
 type ProfileResponse struct {

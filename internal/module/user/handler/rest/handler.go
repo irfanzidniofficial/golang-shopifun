@@ -34,6 +34,7 @@ func (h *userHandler) Register(router fiber.Router) {
 	router.Post("/register", h.register)
 	router.Post("/login", h.login)
 	router.Get("/profile", middleware.AuthBearer, h.profile)
+	router.Get("/profile/:user_id", middleware.AuthBearer, h.profileByUserId)
 
 	router.Get("/oauth/google/url", h.oauthGoogleUrl)
 }
@@ -90,6 +91,30 @@ func (h *userHandler) login(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusOK).JSON(response.Success(res, ""))
+}
+
+func (h *userHandler) profileByUserId(c *fiber.Ctx) error {
+	var (
+		req = new(entity.ProfileRequest)
+		ctx = c.Context()
+		v   = adapter.Adapters.Validator
+	)
+
+	req.UserId = c.Params("user_id")
+
+	if err := v.Validate(req); err != nil {
+		log.Warn().Err(err).Msg("handler::profileByUserId - Invalid request body")
+		code, errs := errmsg.Errors(err, req)
+		return c.Status(code).JSON(response.Error(errs))
+	}
+
+	res, err := h.service.Profile(ctx, req)
+	if err != nil {
+		code, errs := errmsg.Errors[error](err)
+		return c.Status(code).JSON(response.Error(errs))
+	}
+	return c.Status(fiber.StatusOK).JSON(response.Success(res, ""))
+
 }
 
 func (h *userHandler) profile(c *fiber.Ctx) error {
